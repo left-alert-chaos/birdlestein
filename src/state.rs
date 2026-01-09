@@ -14,9 +14,19 @@ pub enum Message {
     CloseTab(usize),
     TabChanged(usize),
     Save,
+    NewFile,
     //MenuMessage(MenuMessage),
     MenuOpened,
     CloseCurrent,
+    ShowLicense,
+    HidePopup,
+}
+
+#[derive(Debug, Clone, Default, Eq, PartialEq)]
+pub enum PopupType {
+    #[default]
+    None,
+    License,
 }
 
 //messages specifically from dropdown menus
@@ -50,8 +60,7 @@ impl Tab {
             .into_os_string()
             .into_string()
             .expect("FILE PATH NOT CONVERTABLE TO STRING");
-        let title: String =
-            String::from(Path::new(&file_path).file_name().unwrap().to_str().unwrap());
+        let title: String = get_title(&file_path);
 
         Tab {
             title,
@@ -63,8 +72,10 @@ impl Tab {
 
 #[derive(Default)]
 pub struct State {
+    pub(crate) config: crate::config::Settings,
     pub(crate) tabs: Vec<Tab>,
     pub(crate) tab_id: usize,
+    pub(crate) popup: PopupType,
 }
 
 impl State {
@@ -72,6 +83,7 @@ impl State {
         match message {
             Message::OpenFile => {
                 self.tabs.push(Tab::open_file());
+                self.tab_id = self.tabs.len() - 1;
             }
             Message::TextEdited(action) => {
                 self.tabs[self.tab_id].content.perform(action);
@@ -93,6 +105,15 @@ impl State {
                 self.save();
                 self.close_tab(self.tab_id);
             }
+            Message::ShowLicense => {
+                self.popup = PopupType::License;
+            }
+            Message::HidePopup => {
+                self.popup = PopupType::None;
+            }
+            Message::NewFile => {
+                self.new_file(true);
+            }
         }
     }
 
@@ -111,10 +132,46 @@ impl State {
         self.tabs.remove(id);
     }
 
-    pub fn save(self: &State) {
-        let tab: &Tab = &self.tabs[self.tab_id];
+    //handle file saves
+    pub fn save(self: &mut State) {
+        //get current tab and see if it has a file path
+        let tab: &mut Tab = &mut self.tabs[self.tab_id];
         if let Some(path) = &tab.file_path {
             files::write_file(path, tab.content.text())
+        } else {
+            //if no file path, ask for one. If not given, don't save.
+            self.new_file(false);
+        }
+    }
+
+    //ask to choose a file to save as. new_tab controls whether to use current tab or to make new tab.
+    pub fn new_file(self: &mut State, new_tab: bool) {
+        //if new tab, create new tab, switch to it, and go from there
+        if new_tab {
+            self.tabs.push(Tab {
+                title: String::from("New file"),
+                file_path: None,
+                content: Content::new(),
+            });
+            self.tab_id = self.tabs.len() - 1;
+        }
+
+        let tab: &mut Tab = &mut self.tabs[self.tab_id];
+        let path = files::save_file();
+        match path {
+            Some(file_path) => {
+                let string_path = file_path
+                    .clone()
+                    .into_os_string()
+                    .into_string()
+                    .expect("FILE PATH NOT CONVERTABLE TO STRING");
+                tab.file_path = Some(string_path.clone());
+                tab.title = get_title(&string_path);
+                files::write_file(&string_path, tab.content.text());
+            }
+            None => {
+                return
+            }
         }
     }
 }
@@ -125,4 +182,8 @@ pub fn fileless_tab() -> Tab {
         file_path: None,
         content: Content::new(),
     }
+}
+
+pub fn get_title(file_path: &String) -> String {
+    String::from(Path::new(&file_path).file_name().unwrap().to_str().unwrap())
 }
