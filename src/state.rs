@@ -2,7 +2,10 @@
 //holds state struct, tab struct, and message enum
 use crate::{files, workspace};
 use iced::{
-    Element,
+    Element, Subscription,
+    event::{self, Event},
+    keyboard,
+    keyboard::key,
     widget::text_editor::{Action, Content},
 };
 use std::{fs, path::Path, path::PathBuf};
@@ -21,6 +24,7 @@ pub enum Message {
     ShowLicense,
     HidePopup,
     MenuMessage(MenuMessage),
+    Event(Event),
 }
 
 #[derive(Debug, Clone, Default, Eq, PartialEq)]
@@ -76,6 +80,10 @@ pub struct State {
 }
 
 impl State {
+    pub fn event_subscription(&self) -> Subscription<Message> {
+        event::listen().map(Message::Event)
+    }
+
     pub fn update(&mut self, message: Message) {
         match message {
             Message::OpenFile => {
@@ -110,6 +118,21 @@ impl State {
             }
             Message::NewFile => {
                 self.new_file(true);
+            }
+            Message::Event(event) => {
+                match event {
+                    Event::Keyboard(keyboard::Event::KeyPressed {
+                        key: keyboard::Key::Named(key::Named::Save),
+                        modifiers,
+                        ..
+                    }) => {
+                        if modifiers.control() {
+                            self.save();
+                        }
+                    }
+                    //add more keybinds later
+                    _ => {}
+                }
             }
             _ => {
                 println!("Unknown message: {message:?}")

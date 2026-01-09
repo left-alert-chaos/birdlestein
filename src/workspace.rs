@@ -22,7 +22,7 @@ pub fn render_workspace(state: &State) -> Element<'_, Message> {
             .width(Length::Shrink)
         ),
         (
-            button("Help").on_press(Message::MenuOpened).width(125),
+            button("Help").on_press(Message::MenuOpened).width(500),
             menu!((button("License").on_press(Message::ShowLicense))).width(Length::Shrink)
         )
     )
