@@ -20,22 +20,19 @@ pub enum Message {
     CloseCurrent,
     ShowLicense,
     HidePopup,
+    MenuMessage(MenuMessage),
 }
 
 #[derive(Debug, Clone, Default, Eq, PartialEq)]
 pub enum PopupType {
     #[default]
-    None,
     License,
 }
 
 //messages specifically from dropdown menus
-#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum MenuMessage {
-    OpenFile,
-    SaveFile,
-    PrintHello,
+    OpenProject(String),
 }
 
 //hold all info about an editor tab
@@ -75,7 +72,7 @@ pub struct State {
     pub(crate) config: crate::config::Settings,
     pub(crate) tabs: Vec<Tab>,
     pub(crate) tab_id: usize,
-    pub(crate) popup: PopupType,
+    pub(crate) popup: Option<PopupType>,
 }
 
 impl State {
@@ -106,13 +103,16 @@ impl State {
                 self.close_tab(self.tab_id);
             }
             Message::ShowLicense => {
-                self.popup = PopupType::License;
+                self.popup = Some(PopupType::License);
             }
             Message::HidePopup => {
-                self.popup = PopupType::None;
+                self.popup = None;
             }
             Message::NewFile => {
                 self.new_file(true);
+            }
+            _ => {
+                println!("Unknown message: {message:?}")
             }
         }
     }
@@ -169,9 +169,7 @@ impl State {
                 tab.title = get_title(&string_path);
                 files::write_file(&string_path, tab.content.text());
             }
-            None => {
-                return
-            }
+            None => return,
         }
     }
 }

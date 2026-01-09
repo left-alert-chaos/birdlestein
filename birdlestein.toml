@@ -1,3 +1,6 @@
+last_project = "myProject"
+
 [projects]
 
-[projects.]
+[projects.myProject]
+path = "other-licenses"
