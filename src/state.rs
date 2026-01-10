@@ -71,12 +71,30 @@ impl Tab {
     }
 }
 
+/*A file display is the button on the left that has the file's name and opens when you click.
+They can be directories, in which case they hold children*/
+#[derive(Default)]
+pub struct FileDisplay {
+    pub(crate) file_type: FileDisplayType,
+    pub(crate) children: Option<fs::ReadDir>,
+    pub(crate) name: String,
+    pub(crate) path: String,
+}
+
+#[derive(Default)]
+pub enum FileDisplayType {
+    #[default] File,
+    Directory,
+}
+
+//the main state structure. Holds all persistent data about UI and config.
 #[derive(Default)]
 pub struct State {
     pub(crate) config: crate::config::Settings,
     pub(crate) tabs: Vec<Tab>,
     pub(crate) tab_id: usize,
     pub(crate) popup: Option<PopupType>,
+    pub(crate) file_displays: Vec<FileDisplay>,
 }
 
 impl State {
