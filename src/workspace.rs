@@ -37,6 +37,13 @@ pub fn render_workspace(state: &State) -> Element<'_, Message> {
             }
         ),
         (
+            button("Run").on_press(Message::MenuOpened),
+            menu!(
+                (button("cargo run").on_press(Message::MenuMessage(MenuMessage::CargoRun))),
+                (button("cargo build").on_press(Message::MenuMessage(MenuMessage::CargoBuild))),
+            )
+        ),
+        (
             button("Help").on_press(Message::MenuOpened),
             menu!((button("License").on_press(Message::ShowLicense))).width(Length::Shrink)
         )
