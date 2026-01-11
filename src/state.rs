@@ -8,7 +8,7 @@ use iced::{
     keyboard::key,
     widget::text_editor::{Action, Content},
 };
-use std::{env, fs, path::Path, path::PathBuf};
+use std::{env, fs, path::Path, path::PathBuf, thread, process::Command};
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -194,6 +194,10 @@ impl State {
 
     //handle file saves
     pub fn save(self: &mut State) {
+        if self.tabs.len() == 0 {
+            return
+        }
+
         //get current tab and see if it has a file path
         let tab: &mut Tab = &mut self.tabs[self.tab_id];
         if let Some(path) = &tab.file_path {
@@ -260,9 +264,32 @@ impl State {
                     })
                 }
             }
-            MenuMessage::CargoRun => {}
-            MenuMessage::CargoBuild => {}
+            MenuMessage::CargoRun => {
+                //prevent from running anywhere
+                if self.project_name == None {
+                    return
+                }
+                self.save();
+                self.cargo_run();
+            }
+            MenuMessage::CargoBuild => {
+                if self.project_name == None {
+                    return
+                }
+                self.save();
+                self.cargo_build()
+            }
         }
+    }
+
+    fn cargo_run(self: &State) {
+        println!("Cargo run");
+        let _ = Command::new("wt").args(["cargo", "run;", "pause"]).output();
+    }
+
+    fn cargo_build(self: &State) {
+        println!("Cargo build");
+        let _ = Command::new("wt").args(["cargo", "build;", "pause"]).output();
     }
 }
 

@@ -50,7 +50,7 @@ pub fn render_workspace(state: &State) -> Element<'_, Message> {
             menu!(
                 (button("cargo run").on_press(Message::MenuMessage(MenuMessage::CargoRun))),
                 (button("cargo build").on_press(Message::MenuMessage(MenuMessage::CargoBuild))),
-            )
+            ).width(Length::Shrink)
         ),
         (
             button("Help").on_press(Message::MenuOpened),
