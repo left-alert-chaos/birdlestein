@@ -1,11 +1,19 @@
 //workspace.rs - render the UI
-use crate::{state::{Message, MenuMessage, PopupType, State, Tab, FileDisplay, FileDisplayType}, config::Project};
+use crate::{
+    config::Project,
+    state::{FileDisplay, FileDisplayType, MenuMessage, Message, PopupType, State, Tab},
+};
 use iced::{
     Element, Font, Length, highlighter,
-    widget::{Stack, Text, button, center, column, opaque, scrollable, text_editor, row},
+    widget::{Stack, Text, button, center, column, opaque, row, scrollable, text_editor},
 };
-use iced_aw::{TabLabel, card, menu, menu_bar, menu::{Item, Menu}, menu_items, widget::tab_bar::TabBar};
-use std::{fs};
+use iced_aw::{
+    TabLabel, card, menu,
+    menu::{Item, Menu},
+    menu_bar, menu_items,
+    widget::tab_bar::TabBar,
+};
+use std::fs;
 
 //This function is single-handedly responsible for the vast majority of the GUI
 pub fn render_workspace(state: &State) -> Element<'_, Message> {
@@ -26,10 +34,11 @@ pub fn render_workspace(state: &State) -> Element<'_, Message> {
             //generate project buttons
             {
                 let mut items = Vec::new();
-                let projects = state.config.projects.clone().into_iter();
-                for (name, _) in projects {
+                let projects = state.config.projects.keys().into_iter();
+                for name in projects {
                     //create button
-                    let btn = button("button").on_press(Message::MenuMessage(MenuMessage::OpenProject(name.clone())));
+                    let btn = button("a button")
+                        .on_press(Message::MenuMessage(MenuMessage::OpenProject(name.clone())));
                     items.push(Item::new(btn));
                 }
                 //return menu
@@ -76,7 +85,6 @@ pub fn render_workspace(state: &State) -> Element<'_, Message> {
     let work_area = row![
         //side panel
         draw_side_panel(state),
-
         //tabbed area
         column![
             tabs,
@@ -96,10 +104,7 @@ pub fn render_workspace(state: &State) -> Element<'_, Message> {
     ];
 
     //draw main layer: the 2d area with bar, tabs, text, etc
-    let main_layer = column![
-        menus,
-        work_area,
-    ].spacing(15);
+    let main_layer = column![menus, work_area,].spacing(15);
 
     //depth is a stack - it lets widgets be on top of each other. Main rendering should happen in main_area
     let mut depth: Stack<Message> = Stack::new();
@@ -126,14 +131,21 @@ pub fn render_workspace(state: &State) -> Element<'_, Message> {
 
 pub fn draw_side_panel(state: &State) -> Element<'_, Message> {
     let mut area = column![];
+
+    //return early if no project selected
+    if state.project_name == None {
+        return area.into();
+    }
+
     for display in &state.file_displays {
         match display.file_type {
             FileDisplayType::File => {
-                area = area.push(button(&display.name[2..]).on_press(Message::OpenSpecificFile(display.name.clone())));
+                area = area.push(
+                    button(&display.name[2..])
+                        .on_press(Message::OpenSpecificFile(display.name.clone())),
+                );
             }
-            FileDisplayType::Directory => {
-
-            }
+            FileDisplayType::Directory => {}
         }
     }
     area.into()
