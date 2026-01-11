@@ -8,7 +8,7 @@ use iced::{
     keyboard::key,
     widget::text_editor::{Action, Content},
 };
-use std::{fs, env, path::Path, path::PathBuf};
+use std::{env, fs, path::Path, path::PathBuf};
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -77,7 +77,7 @@ impl Tab {
         Tab {
             title,
             file_path: Some(String::from(file_path)),
-            content: Content::with_text(&file_text)
+            content: Content::with_text(&file_text),
         }
     }
 }
@@ -94,7 +94,8 @@ pub struct FileDisplay {
 
 #[derive(Default)]
 pub enum FileDisplayType {
-    #[default] File,
+    #[default]
+    File,
     Directory,
 }
 
@@ -102,6 +103,7 @@ pub enum FileDisplayType {
 #[derive(Default)]
 pub struct State {
     pub(crate) config: crate::config::Settings,
+    pub(crate) project_name: Option<String>,
     pub(crate) tabs: Vec<Tab>,
     pub(crate) tab_id: usize,
     pub(crate) popup: Option<PopupType>,
@@ -231,17 +233,20 @@ impl State {
 
     pub fn open_project(self: &mut State, project_name: String) {
         if !self.config.projects.contains_key(&project_name) {
-            return
+            return;
         }
         println!("Successfully opening project")
     }
 
     fn process_menu_message(self: &mut State, message: MenuMessage) {
         match message {
+            //open a project
             MenuMessage::OpenProject(project) => {
                 println!("Opening project {}", project);
+                self.project_name = Some(project.clone());
                 let project_info = &self.config.projects[&project];
                 let _ = env::set_current_dir(Path::new(&project_info.path));
+
                 for path in fs::read_dir("./").expect("COULDN'T READ CONTENTS") {
                     let path_string: String = String::from(path.unwrap().path().to_str().unwrap());
                     println!("{path_string}");
