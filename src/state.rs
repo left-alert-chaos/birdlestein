@@ -38,6 +38,8 @@ pub enum PopupType {
 #[derive(Debug, Clone)]
 pub enum MenuMessage {
     OpenProject(String),
+    CargoRun,
+    CargoBuild,
 }
 
 //hold all info about an editor tab
@@ -258,6 +260,8 @@ impl State {
                     })
                 }
             }
+            MenuMessage::CargoRun => {}
+            MenuMessage::CargoBuild => {}
         }
     }
 }

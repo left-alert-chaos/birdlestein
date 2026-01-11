@@ -37,7 +37,7 @@ pub fn render_workspace(state: &State) -> Element<'_, Message> {
                 let projects = state.config.projects.keys().into_iter();
                 for name in projects {
                     //create button
-                    let btn = button("button")
+                    let btn = button("a button")
                         .on_press(Message::MenuMessage(MenuMessage::OpenProject(name.clone())));
                     items.push(Item::new(btn));
                 }
