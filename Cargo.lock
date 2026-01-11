@@ -3,17 +3,6 @@
 version = 4
 
 [[package]]
-name = "Sunflower"
-version = "0.1.0"
-dependencies = [
- "iced",
- "iced_aw",
- "rfd",
- "serde",
- "toml",
-]
-
-[[package]]
 name = "ab_glyph"
 version = "0.2.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -329,6 +318,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b1f45e9417d87227c7a56d22e471c6206462cba514c7590c09aff4cf6d1ddcad"
 dependencies = [
  "serde",
+]
+
+[[package]]
+name = "birdlestein"
+version = "0.1.0"
+dependencies = [
+ "iced",
+ "iced_aw",
+ "rfd",
+ "serde",
+ "toml",
 ]
 
 [[package]]

@@ -11,7 +11,7 @@ pub struct Settings {
 }
 
 //holds all info about a project, which isn't much rn.
-#[derive(Deserialize, Default, Debug)]
+#[derive(Deserialize, Default, Debug, Clone)]
 pub struct Project {
     pub(crate) path: String,
 }
