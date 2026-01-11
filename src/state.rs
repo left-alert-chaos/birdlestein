@@ -8,11 +8,12 @@ use iced::{
     keyboard::key,
     widget::text_editor::{Action, Content},
 };
-use std::{fs, path::Path, path::PathBuf};
+use std::{fs, env, path::Path, path::PathBuf};
 
 #[derive(Debug, Clone)]
 pub enum Message {
     OpenFile,
+    OpenSpecificFile(String),
     TextEdited(Action),
     CloseTab(usize),
     TabChanged(usize),
@@ -69,6 +70,16 @@ impl Tab {
             content: Content::with_text(&file_text),
         }
     }
+
+    pub fn from_file(file_path: &str) -> Self {
+        let title: String = get_title(&String::from(file_path));
+        let file_text: String = fs::read_to_string(file_path).unwrap_or(String::from(""));
+        Tab {
+            title,
+            file_path: Some(String::from(file_path)),
+            content: Content::with_text(&file_text)
+        }
+    }
 }
 
 /*A file display is the button on the left that has the file's name and opens when you click.
@@ -106,6 +117,10 @@ impl State {
         match message {
             Message::OpenFile => {
                 self.tabs.push(Tab::open_file());
+                self.tab_id = self.tabs.len() - 1;
+            }
+            Message::OpenSpecificFile(file) => {
+                self.tabs.push(Tab::from_file(file.as_str()));
                 self.tab_id = self.tabs.len() - 1;
             }
             Message::TextEdited(action) => {
@@ -151,6 +166,9 @@ impl State {
                     //add more keybinds later
                     _ => {}
                 }
+            }
+            Message::MenuMessage(message) => {
+                self.process_menu_message(message);
             }
             _ => {
                 println!("Unknown message: {message:?}")
@@ -211,6 +229,31 @@ impl State {
                 files::write_file(&string_path, tab.content.text());
             }
             None => return,
+        }
+    }
+
+    pub fn open_project(self: &mut State, project_name: String) {
+        if !self.config.projects.contains_key(&project_name) {
+            return
+        }
+        println!("Successfully opening project")
+    }
+
+    fn process_menu_message(self: &mut State, message: MenuMessage) {
+        match message {
+            MenuMessage::OpenProject(project) => {
+                let project_info = &self.config.projects[&project];
+                let _ = env::set_current_dir(Path::new(&project_info.path));
+                for path in fs::read_dir("./").expect("COULDN'T READ CONTENTS") {
+                    let path_string: String = String::from(path.unwrap().path().to_str().unwrap());
+                    self.file_displays.push(FileDisplay {
+                        file_type: FileDisplayType::File,
+                        children: None,
+                        name: path_string.clone(),
+                        path: path_string.clone(),
+                    })
+                }
+            }
         }
     }
 }
