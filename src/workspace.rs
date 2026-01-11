@@ -4,7 +4,7 @@ use iced::{
     Element, Font, Length, highlighter,
     widget::{Stack, Text, button, center, column, opaque, scrollable, text_editor, row},
 };
-use iced_aw::{TabLabel, card, menu, menu_bar, menu::Item, menu_items, widget::tab_bar::TabBar};
+use iced_aw::{TabLabel, card, menu, menu_bar, menu::{Item, Menu}, menu_items, widget::tab_bar::TabBar};
 use std::{fs};
 
 //This function is single-handedly responsible for the vast majority of the GUI
@@ -23,18 +23,18 @@ pub fn render_workspace(state: &State) -> Element<'_, Message> {
         ),
         (
             button("Project").on_press(Message::MenuOpened),
-            menu!(
-                (button("Open...").on_press(Message::MenuOpened), menu!(/*{
-                    let mut items = Vec::new();
-
-                    let projects = state.config.projects.clone().into_iter();
-
-                    for (name, project) in projects {
-                        items.push((button(&name[..]).on_press(Message::MenuMessage(MenuMessage::OpenProject(name)))));
-                    }
-                    menu_items!(items)
-                }*/(button("hi").on_press(Message::MenuMessage(MenuMessage::OpenProject(String::from("myProject")))))).width(Length::Shrink))
-            ).width(Length::Shrink)
+            //generate project buttons
+            {
+                let mut items = Vec::new();
+                let projects = state.config.projects.clone().into_iter();
+                for (name, _) in projects {
+                    //create button
+                    let btn = button("button").on_press(Message::MenuMessage(MenuMessage::OpenProject(name.clone())));
+                    items.push(Item::new(btn));
+                }
+                //return menu
+                Menu::new(items).width(Length::Shrink)
+            }
         ),
         (
             button("Help").on_press(Message::MenuOpened),
@@ -47,8 +47,12 @@ pub fn render_workspace(state: &State) -> Element<'_, Message> {
     if state.tabs.len() == 0 {
         return column![
             menus,
-            center(button("Open file").on_press(Message::OpenFile)),
+            row![
+                draw_side_panel(state),
+                center(Text::from("No files are open.")),
+            ],
         ]
+        .spacing(15)
         .into();
     }
 
@@ -88,7 +92,7 @@ pub fn render_workspace(state: &State) -> Element<'_, Message> {
     let main_layer = column![
         menus,
         work_area,
-    ];
+    ].spacing(15);
 
     //depth is a stack - it lets widgets be on top of each other. Main rendering should happen in main_area
     let mut depth: Stack<Message> = Stack::new();
@@ -118,7 +122,7 @@ pub fn draw_side_panel(state: &State) -> Element<'_, Message> {
     for display in &state.file_displays {
         match display.file_type {
             FileDisplayType::File => {
-                area = area.push(button(display.name.as_str()).on_press(Message::OpenSpecificFile(display.name.clone())));
+                area = area.push(button(&display.name[2..]).on_press(Message::OpenSpecificFile(display.name.clone())));
             }
             FileDisplayType::Directory => {
 

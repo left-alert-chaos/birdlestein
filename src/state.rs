@@ -170,9 +170,6 @@ impl State {
             Message::MenuMessage(message) => {
                 self.process_menu_message(message);
             }
-            _ => {
-                println!("Unknown message: {message:?}")
-            }
         }
     }
 
@@ -242,10 +239,12 @@ impl State {
     fn process_menu_message(self: &mut State, message: MenuMessage) {
         match message {
             MenuMessage::OpenProject(project) => {
+                println!("Opening project {}", project);
                 let project_info = &self.config.projects[&project];
                 let _ = env::set_current_dir(Path::new(&project_info.path));
                 for path in fs::read_dir("./").expect("COULDN'T READ CONTENTS") {
                     let path_string: String = String::from(path.unwrap().path().to_str().unwrap());
+                    println!("{path_string}");
                     self.file_displays.push(FileDisplay {
                         file_type: FileDisplayType::File,
                         children: None,
